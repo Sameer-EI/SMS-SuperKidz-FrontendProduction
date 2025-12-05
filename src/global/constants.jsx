@@ -1,7 +1,7 @@
 export const constants = {
   isOnline: true,
   isOffline: true,
-   baseUrl: "https://api.super-kidz.in/""
+   baseUrl: "https://api.super-kidz.in/",
   // baseUrl: "https://smsproject1.pythonanywhere.com/", //deployed for testing    `
   // baseUrl: "https://smsproject.pythonanywhere.com/", //deployed for school     
   // baseUrl: "https://superkidsschool.pythonanywhere.com/", //deployed for superKids school     
