@@ -1,0 +1,145 @@
+.nexus-logo {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'cursive';
+  background: linear-gradient(135deg, #6e00ff, #95c2d3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+
+.formBgColor {
+  background-color: #ffe9d1;
+}
+
+.passwordEyes {
+  position: absolute;
+  top: 35px;
+  right: 15px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.bgTheme {
+  background-color: #5E35B1;
+}
+
+.bgTheme.btn:hover {
+  cursor: pointer;
+  background: lavender !important;
+  border-color: #5E35B1;
+  color: #5E35B1;
+}
+
+.textTheme {
+  color: #5E35B1;
+}
+
+.borderTheme {
+  border: 1px solid #5E35B1;
+}
+
+.borderTheme-b {
+  border-bottom: 1px solid #5E35B1;
+}
+
+.borderTheme-t {
+  border-top: 1px solid #5E35B1;
+}
+
+.borderTheme-r {
+  border-right: 1px solid #5E35B1;
+}
+
+.borderTheme-l {
+  border-left: 1px solid #5E35B1;
+}
+
+.schoolBoyAnimation {
+  height: 150px;
+  width: 150px;
+}
+
+
+.btn-theme {
+  border: 1px solid #5E35B1;
+  color: #5E35B1;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-theme:hover {
+  background: #5E35B1;
+  color: white;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  
+  scrollbar-width: none;     
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;            
+}
+@media (prefers-color-scheme: dark) {
+  .react-calendar {
+    background: #1f2937 !important; /* gray-800 */
+    color: #f3f4f6 !important; /* gray-100 */
+    border: none !important;
+  }
+
+  .react-calendar__navigation button:enabled:hover,
+  .react-calendar__navigation button:enabled:focus {
+    background-color: #374151 !important; /* gray-700 */
+    color: #f3f4f6 !important;
+  }
+
+  .react-calendar__month-view__weekdays {
+    background-color: #374151 !important; /* gray-700 */
+  }
+
+  .react-calendar__month-view__weekdays__weekday abbr {
+    color: #d1d5db !important; /* gray-300 */
+    text-decoration: none !important;
+  }
+
+  .react-calendar__tile:enabled:hover,
+  .react-calendar__tile:enabled:focus {
+    background-color: #374151 !important; /* gray-700 */
+    color: #f3f4f6 !important;
+  }
+
+  .react-calendar__tile--now {
+    background-color: #374151 !important;
+    color: #60a5fa !important; /* blue-400 */
+  }
+
+  .react-calendar__navigation__label__labelText {
+    color: #f3f4f6 !important;
+  }
+
+  .react-calendar__navigation button {
+    color: #f3f4f6 !important;
+  }
+}
+
+
+
+
+.apexcharts-canvas .apexcharts-svg .apexcharts-yaxis-texts-g .apexcharts-text, .apexcharts-canvas .apexcharts-svg .apexcharts-xaxis-texts-g .apexcharts-text {
+  fill: #5E35B1 !important;
+}
+
+
+
+.custom-select .arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.8em;
+  color: #333;
+}
