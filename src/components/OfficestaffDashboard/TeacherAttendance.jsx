@@ -55,37 +55,51 @@ const TeacherAttendance = () => {
 
         const today = new Date().toISOString().split("T")[0];
 
-        // Initialize teacher attendance map
+        const statusMap = {
+          P: "present",
+          A: "absent",
+          L: "leave",
+        };
+
         const initialTeacher = {};
         teachersData.forEach((t) => {
           const record = teacherAttendanceRecords.find(
-            (r) => r.teacher === t.id && r.date === today
+            (r) => r.teacher === t.id && r.marked_at === today,
           );
+
           if (record) {
             initialTeacher[t.id] = {
-              date: record.date,
-              status: record.status,
+              date: record.marked_at,
+              status: statusMap[record.status] || "",
               marked: true,
             };
           } else {
-            initialTeacher[t.id] = { date: today, status: "", marked: false };
+            initialTeacher[t.id] = {
+              date: today,
+              status: "",
+              marked: false,
+            };
           }
         });
 
-        // Initialize staff attendance map
         const initialStaff = {};
         staffData.forEach((s) => {
           const record = staffAttendanceRecords.find(
-            (r) => r.office_staff_id === s.id && r.date === today
+            (r) => r.office_staff === s.id && r.marked_at === today,
           );
+
           if (record) {
             initialStaff[s.id] = {
-              date: record.date,
-              status: record.status,
+              date: record.marked_at,
+              status: statusMap[record.status] || "",
               marked: true,
             };
           } else {
-            initialStaff[s.id] = { date: today, status: "", marked: false };
+            initialStaff[s.id] = {
+              date: today,
+              status: "",
+              marked: false,
+            };
           }
         });
 
@@ -137,7 +151,9 @@ const TeacherAttendance = () => {
         });
       }
 
-      return msgs.length ? msgs.join("\n") : "Attendance processed successfully!";
+      return msgs.length
+        ? msgs.join("\n")
+        : "Attendance processed successfully!";
     }
 
     if (typeof data === "object") {
@@ -168,7 +184,10 @@ const TeacherAttendance = () => {
     setSavingTeacher((prev) => ({ ...prev, [teacher.id]: true }));
 
     try {
-      const response = await saveTeacherAttendance([teacher], teacherAttendance);
+      const response = await saveTeacherAttendance(
+        [teacher],
+        teacherAttendance,
+      );
       const msg = extractMessage(response?.data);
       setAlertMessage(msg);
       setShowAlert(true);
@@ -191,7 +210,7 @@ const TeacherAttendance = () => {
   const handleTeacherSaveAll = async () => {
     const unsavedTeachers = teachers.filter(
       (t) =>
-        !teacherAttendance[t.id]?.marked && teacherAttendance[t.id]?.status
+        !teacherAttendance[t.id]?.marked && teacherAttendance[t.id]?.status,
     );
 
     if (unsavedTeachers.length === 0) {
@@ -210,7 +229,7 @@ const TeacherAttendance = () => {
 
       const response = await saveTeacherAttendance(
         unsavedTeachers,
-        unsavedAttendanceMap
+        unsavedAttendanceMap,
       );
       const msg =
         extractMessage(response?.data) || "Attendance saved successfully!";
@@ -253,7 +272,7 @@ const TeacherAttendance = () => {
     try {
       const response = await saveOfficeStaffAttendance(
         [staffMember],
-        staffAttendance
+        staffAttendance,
       );
       const msg = extractMessage(response?.data) || "Saved";
       setAlertMessage(msg);
@@ -276,7 +295,7 @@ const TeacherAttendance = () => {
 
   const handleStaffSaveAll = async () => {
     const unsavedStaff = staff.filter(
-      (s) => !staffAttendance[s.id]?.marked && staffAttendance[s.id]?.status
+      (s) => !staffAttendance[s.id]?.marked && staffAttendance[s.id]?.status,
     );
 
     if (unsavedStaff.length === 0) {
@@ -295,7 +314,7 @@ const TeacherAttendance = () => {
 
       const response = await saveAllOfficeStaffAttendance(
         unsavedAttendanceMap,
-        unsavedStaff
+        unsavedStaff,
       );
       const msg = extractMessage(response?.data) || "Saved";
       setAlertMessage(msg);
@@ -322,24 +341,24 @@ const TeacherAttendance = () => {
     .filter((t) =>
       `${t.first_name} ${t.last_name}`
         .toLowerCase()
-        .includes(teacherSearchTerm.toLowerCase())
+        .includes(teacherSearchTerm.toLowerCase()),
     )
     .sort((a, b) =>
       `${a.first_name} ${a.last_name}`.localeCompare(
-        `${b.first_name} ${b.last_name}`
-      )
+        `${b.first_name} ${b.last_name}`,
+      ),
     );
 
   const filteredStaff = staff
     .filter((s) =>
       `${s.first_name} ${s.last_name}`
         .toLowerCase()
-        .includes(staffSearchTerm.toLowerCase())
+        .includes(staffSearchTerm.toLowerCase()),
     )
     .sort((a, b) =>
       `${a.first_name} ${a.last_name}`.localeCompare(
-        `${b.first_name} ${b.last_name}`
-      )
+        `${b.first_name} ${b.last_name}`,
+      ),
     );
 
   // ------------ LOADING / ERROR ----------
@@ -476,7 +495,7 @@ const TeacherAttendance = () => {
                               handleTeacherChange(
                                 teacher.id,
                                 "date",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             max={new Date().toISOString().split("T")[0]}
@@ -490,7 +509,7 @@ const TeacherAttendance = () => {
                               handleTeacherChange(
                                 teacher.id,
                                 "status",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             disabled={teacherAttendance[teacher.id]?.marked}
@@ -526,8 +545,8 @@ const TeacherAttendance = () => {
                             {teacherAttendance[teacher.id]?.marked
                               ? "Marked"
                               : savingTeacher[teacher.id]
-                              ? " "
-                              : "Save"}
+                                ? " "
+                                : "Save"}
                           </button>
                         </td>
                       </tr>
@@ -578,13 +597,13 @@ const TeacherAttendance = () => {
                 type="text"
                 placeholder="Search by name..."
                 value={staffSearchTerm}
-                onChange={(e) =>
-                  setStaffSearchTerm(e.target.value.trimStart())
-                }
+                onChange={(e) => setStaffSearchTerm(e.target.value.trimStart())}
                 className="border px-3 py-2 rounded w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <Link
-                to={allRouterLink.teacherAttendanceRecord /* change if you have separate staff attendance record route */}
+                to={
+                  allRouterLink.teacherAttendanceRecord /* change if you have separate staff attendance record route */
+                }
                 className="btn bgTheme text-white"
               >
                 <i className="fa-solid fa-clipboard-list w-5"></i> Attendance
@@ -670,8 +689,7 @@ const TeacherAttendance = () => {
                           <button
                             onClick={() => handleStaffSave(s)}
                             disabled={
-                              staffAttendance[s.id]?.marked ||
-                              savingStaff[s.id]
+                              staffAttendance[s.id]?.marked || savingStaff[s.id]
                             }
                             className={`btn w-28 ${
                               staffAttendance[s.id]?.marked
@@ -685,8 +703,8 @@ const TeacherAttendance = () => {
                             {staffAttendance[s.id]?.marked
                               ? "Marked"
                               : savingStaff[s.id]
-                              ? " "
-                              : "Save"}
+                                ? " "
+                                : "Save"}
                           </button>
                         </td>
                       </tr>

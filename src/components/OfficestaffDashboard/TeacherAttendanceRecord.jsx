@@ -35,6 +35,21 @@ const TeacherAttendanceRecord = () => {
   const [selectedStaffRecord, setSelectedStaffRecord] = useState(null);
   const [staffUpdating, setStaffUpdating] = useState(false);
 
+  const normalizeStatus = (status) => {
+    if (!status) return "absent";
+
+    switch (status.toLowerCase()) {
+      case "p":
+        return "present";
+      case "l":
+        return "leave";
+      case "a":
+        return "absent";
+      default:
+        return status.toLowerCase(); // fallback
+    }
+  };
+
   // ---------- Fetch both (teacher + staff) ----------
   useEffect(() => {
     const fetchData = async () => {
@@ -64,10 +79,14 @@ const TeacherAttendanceRecord = () => {
 
   // ---------- Filters (Teacher) ----------
   const teacherFilteredRecords = teacherRecords.filter((r) => {
-    const matchesDate = teacherSearchDate ? r.date === teacherSearchDate : true;
-    const matchesName = teacherSearchName
-      ? r.teacher_name.toLowerCase().includes(teacherSearchName.toLowerCase())
+    const matchesDate = teacherSearchDate
+      ? r.marked_at === teacherSearchDate
       : true;
+
+    const matchesName = teacherSearchName
+      ? r.teacher_name?.toLowerCase().includes(teacherSearchName.toLowerCase())
+      : true;
+
     const matchesStatus = teacherStatusFilter
       ? r.status.toLowerCase() === teacherStatusFilter.toLowerCase()
       : true;
@@ -77,7 +96,9 @@ const TeacherAttendanceRecord = () => {
 
   // ---------- Filters (Staff) ----------
   const staffFilteredRecords = staffRecords.filter((r) => {
-    const matchesDate = staffSearchDate ? r.date === staffSearchDate : true;
+    const matchesDate = staffSearchDate
+      ? r.marked_at === staffSearchDate
+      : true;
     const matchesName = staffSearchName
       ? r.office_staff_name
           .toLowerCase()
@@ -115,15 +136,15 @@ const TeacherAttendanceRecord = () => {
     try {
       await updateTeacherAttendance(
         selectedTeacherRecord.id,
-        selectedTeacherRecord
+        selectedTeacherRecord,
       );
 
       setTeacherRecords((prev) =>
         prev.map((r) =>
           r.id === selectedTeacherRecord.id
             ? { ...r, status: selectedTeacherRecord.status }
-            : r
-        )
+            : r,
+        ),
       );
 
       setAlertTitle("Teacher Attendance");
@@ -165,15 +186,15 @@ const TeacherAttendanceRecord = () => {
     try {
       await updateOfficeStaffAttendance(
         selectedStaffRecord.id,
-        selectedStaffRecord
+        selectedStaffRecord,
       );
 
       setStaffRecords((prev) =>
         prev.map((r) =>
           r.id === selectedStaffRecord.id
             ? { ...r, status: selectedStaffRecord.status }
-            : r
-        )
+            : r,
+        ),
       );
 
       setAlertTitle("Office Staff Attendance");
@@ -335,9 +356,12 @@ const TeacherAttendanceRecord = () => {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                   {teacherFilteredRecords.length > 0 ? (
                     [...teacherFilteredRecords]
-                      .sort((a, b) =>
-                        a.teacher_name.localeCompare(b.teacher_name)
-                      )
+                      .sort((a, b) => {
+                        const nameA = a.teacher_name || "N/A";
+                        const nameB = b.teacher_name || "N/A";
+                        return nameA.localeCompare(nameB);
+                        // a.teacher_name.localeCompare(b.teacher_name)
+                      })
                       .map((record) => (
                         <tr
                           key={record.id}
@@ -347,7 +371,7 @@ const TeacherAttendanceRecord = () => {
                             {record.teacher_name}
                           </td>
                           <td className="px-4 py-3 text-gray-700 text-nowrap dark:text-gray-300">
-                            {record.date}
+                            {record.marked_at}
                           </td>
                           <td className="px-4 py-3 capitalize">
                             <span
@@ -355,8 +379,8 @@ const TeacherAttendanceRecord = () => {
                                 record.status.toLowerCase() === "present"
                                   ? "bg-green-100 text-green-800"
                                   : record.status.toLowerCase() === "leave"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-600"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-600"
                               }`}
                             >
                               {record.status}
@@ -481,9 +505,12 @@ const TeacherAttendanceRecord = () => {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                   {staffFilteredRecords.length > 0 ? (
                     [...staffFilteredRecords]
-                      .sort((a, b) =>
-                        a.office_staff_name.localeCompare(b.office_staff_name)
-                      )
+                      .sort((a, b) => {
+                        const nameA = a.office_staff_name || "N/A";
+                        const nameB = b.office_staff_name || "N/A";
+                        return nameA.localeCompare(nameB);
+                        // a.office_staff_name.localeCompare(b.office_staff_name)
+                      })
                       .map((record) => (
                         <tr
                           key={record.id}
@@ -501,8 +528,8 @@ const TeacherAttendanceRecord = () => {
                                 record.status.toLowerCase() === "present"
                                   ? "bg-green-100 text-green-800"
                                   : record.status.toLowerCase() === "leave"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-600"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-600"
                               }`}
                             >
                               {record.status}
@@ -554,13 +581,13 @@ const TeacherAttendanceRecord = () => {
               onChange={handleTeacherStatusChange}
               className="w-full border px-3 py-2 rounded mb-4"
             >
-              <option value="absent" className="dark:text-black">
+              <option value="A" className="dark:text-black">
                 Absent
               </option>
-              <option value="leave" className="dark:text-black">
+              <option value="L" className="dark:text-black">
                 Leave
               </option>
-              <option value="present" className="dark:text-black">
+              <option value="P" className="dark:text-black">
                 Present
               </option>
             </select>
@@ -597,19 +624,21 @@ const TeacherAttendanceRecord = () => {
             <p className="mb-2 font-medium capitalize">
               {selectedStaffRecord.office_staff_name}
             </p>
-            <p className="mb-4 text-gray-500">{selectedStaffRecord.date}</p>
+            <p className="mb-4 text-gray-500">
+              {selectedStaffRecord.marked_at}{" "}
+            </p>{" "}
             <select
               value={selectedStaffRecord.status}
               onChange={handleStaffStatusChange}
               className="w-full border px-3 py-2 rounded mb-4"
             >
-              <option value="Absent" className="dark:text-black">
+              <option value="A" className="dark:text-black">
                 Absent
               </option>
-              <option value="Leave" className="dark:text-black">
+              <option value="L" className="dark:text-black">
                 Leave
               </option>
-              <option value="Present" className="dark:text-black">
+              <option value="P" className="dark:text-black">
                 Present
               </option>
             </select>
