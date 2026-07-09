@@ -37,8 +37,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
           script: |
-            mkdir -p /var/www/superkidz-frontend/SMS-SuperKidz-FrontendProduction/dist
-            find /var/www/superkidz-frontend/SMS-SuperKidz-FrontendProduction/dist -mindepth 1 -delete
+            rm -rf /var/www/superkidz-frontend/SMS-SuperKidz-FrontendProduction/dist
 
       - name: Upload Build to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -47,8 +46,8 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
-          source: "dist/*"
-          target: "/var/www/superkidz-frontend/SMS-SuperKidz-FrontendProduction/dist"
+          source: "dist"
+          target: "/var/www/superkidz-frontend/SMS-SuperKidz-FrontendProduction"
 
       - name: Verify and Reload Nginx
         uses: appleboy/ssh-action@v1.2.0
