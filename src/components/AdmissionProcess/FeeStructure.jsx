@@ -8,7 +8,6 @@ const initialFormState = {
     fee_type: "",
     fee_amount: "",
     year_level: [],
-    section: "", // Added section field
 };
 
 const masterFeeOptions = [
@@ -222,7 +221,6 @@ const FeeStructure = () => {
             fee_type: structure.fee_type || "",
             fee_amount: structure.fee_amount?.toString() || "",
             year_level: normalizeYearLevels(structure.year_level),
-            section: structure.section || "", // Added section field
         });
         setSuccessMessage("");
         setErrorMessage("");
@@ -304,10 +302,6 @@ const FeeStructure = () => {
             showModalMessage("error", "Validation Error", "Please select at least one class level.");
             return;
         }
-        if (!formData.section) {
-            showModalMessage("error", "Validation Error", "Please select a section.");
-            return;
-        }
 
         // Validate that fee_amount is a valid number
         const amountNum = Number(formData.fee_amount);
@@ -324,7 +318,6 @@ const FeeStructure = () => {
                 fee_type: formData.fee_type.trim(),
                 fee_amount: formatAmount(formData.fee_amount),
                 year_level: formData.year_level.map((item) => Number(item)),
-                section: formData.section, // Added section field
             };
 
             let response;
@@ -606,24 +599,6 @@ const FeeStructure = () => {
                                     </label>
                                 </div>
 
-                                <div className="grid gap-5 md:grid-cols-2">
-                                    <label className="space-y-2 text-sm font-medium text-slate-700">
-                                        <span>Section</span>
-                                        <select
-                                            name="section"
-                                            value={formData.section}
-                                            onChange={handleInputChange}
-                                            className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-violet-500 focus:bg-white"
-                                        >
-                                            <option value="">Select section</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="C">C</option>
-                                            <option value="D">D</option>
-                                        </select>
-                                    </label>
-                                </div>
-
                                 <div className="space-y-3">
                                     <p className="text-sm font-semibold text-slate-700">Assign classes</p>
                                     <div className="grid gap-3 md:grid-cols-2">
@@ -700,15 +675,12 @@ const FeeStructure = () => {
                                                             )}
                                                         </div>
 
-                                                        <div className="mt-2 grid grid-cols-1 gap-1 text-sm text-slate-600 sm:grid-cols-3">
+                                                        <div className="mt-2 grid grid-cols-1 gap-1 text-sm text-slate-600 sm:grid-cols-2">
                                                             <p>
                                                                 School year: <span className="font-medium text-slate-900">{schoolYearName}</span>
                                                             </p>
                                                             <p>
                                                                 Master fee: <span className="font-medium text-slate-900">{getMasterFeeOptionLabel(structure.master_fee)}</span>
-                                                            </p>
-                                                            <p>
-                                                                Section: <span className="font-medium text-slate-900">{structure.section || "—"}</span>
                                                             </p>
                                                         </div>
 
