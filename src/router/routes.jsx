@@ -86,6 +86,7 @@ import PrivacyPolicy from "../components/Privacy/Privacy";
 import CreateCategory from "../components/ManageExpenses/AllExpenses/CreateCategory";
 import { StudentAdmissionFees } from "../components/AdmissionProcess/StudentAdmissionFees"
 import { CreateMarksheet } from "../components/DirectorDashboard/CreateMarksheet";
+import FeeStructure from "../components/AdmissionProcess/FeeStructure";
 
 export const routes = [
   {
@@ -621,6 +622,12 @@ export const routes = [
   {
     path: allRouterLink.createMarksheet,
     element: <CreateMarksheet/>,
+    protected: true,
+    allowedRoles: [constants.roles.director, constants.roles.officeStaff],
+  },
+    {
+    path: allRouterLink.feeStructure,
+    element: <FeeStructure />,
     protected: true,
     allowedRoles: [constants.roles.director, constants.roles.officeStaff],
   },
