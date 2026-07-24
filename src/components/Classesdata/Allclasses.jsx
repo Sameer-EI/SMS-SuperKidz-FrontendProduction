@@ -1,45 +1,54 @@
 import React, { useEffect, useState } from "react";
-import { fetchYearLevels, fetchStudentYearLevelByClass } from "../../services/api/Api";
+import { useLocation, useParams } from "react-router-dom";
+import { fetchStudentYearLevelByClass } from "../../services/api/Api";
 import { Link } from "react-router-dom";
-import { useContext } from "react";
 
+const AllStudentsPerClass = () => {
+  const { id } = useParams();
+  const location = useLocation();
 
-const Allclasses = () => {
+  const [students, setStudents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSection, setSelectedSection] = useState("all");
 
-  const [yearLevels, setYearLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const getYearLevels = async () => {
-    setLoading(true);
+  const levelName = location.state?.level_name || "Unknown";
+  const yearLevelName = location.state?.year_level_name || location.state?.session || null;
 
+  const getStudents = async () => {
     try {
-      const data = await fetchYearLevels();
-      const withCounts = await Promise.all(
-        data.map(async (level) => {
-          const students = await fetchStudentYearLevelByClass(level.id).catch(() => []);
-          return {
-            ...level,
-            student_count: students.length,
-          };
-        })
+      // ✅ Pass yearLevelName to API function
+      const data = await fetchStudentYearLevelByClass(id, yearLevelName);
+      const sortedData = [...data].sort((a, b) =>
+        (a.student_name || "").localeCompare(b.student_name || "", "en", { sensitivity: "base" })
       );
-    
 
-      setYearLevels(withCounts);
-
+      setStudents(sortedData);
     } catch (err) {
-      console.error("Error fetching year levels:", err);
-      setError("Failed to fetch year levels. Please try again later.");
+      console.error("Error fetching students:", err);
+      setError("Failed to fetch students.");
     } finally {
       setLoading(false);
     }
   };
 
-
-
   useEffect(() => {
-    getYearLevels();
-  }, []);
+    getStudents();
+  }, [id, yearLevelName]);
+
+  // Get unique sections for filter dropdown - Sorted alphabetically
+  const sections = ["all", ...new Set(students.map(student => student.section).filter(Boolean))];
+  const sortedSections = ["all", ...sections.filter(s => s !== "all").sort((a, b) => 
+    a.localeCompare(b, undefined, { sensitivity: 'base' })
+  )];
+
+  // Filter students by search term and section
+  const filteredStudents = students.filter((student) => {
+    const matchesSearch = student.student_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSection = selectedSection === "all" || student.section === selectedSection;
+    return matchesSearch && matchesSection;
+  });
 
   if (loading) {
     return (
@@ -65,50 +74,100 @@ const Allclasses = () => {
 
   return (
     <div className="min-h-screen p-5 bg-gray-50 dark:bg-gray-900 mb-24 md:mb-10">
-      <div className="bg-white dark:bg-gray-800 p-6 max-w-7xl mx-auto rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-4">
-          <i className="fa-solid fa-graduation-cap mr-2" />
-          All Year Levels
-        </h1>
+      <div className="bg-white dark:bg-gray-800 max-w-7xl p-6 rounded-lg shadow-lg mx-auto">
 
-        <div className="overflow-x-auto no-scrollbar rounded-lg max-h-[70vh]">
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+            <i className="fa-solid fa-graduation-cap mr-2" />
+            Students in {levelName}
+          </h1>
+          {yearLevelName && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Academic Year: {yearLevelName}
+            </p>
+          )}
+        </div>
+
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {/* Section Filter Dropdown - Sorted alphabetically */}
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="border px-3 py-2 rounded w-full sm:w-40 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Sections</option>
+              {sortedSections.map((section) =>
+                section !== "all" && (
+                  <option key={section} value={section}>
+                    {section}
+                  </option>
+                )
+              )}
+            </select>
+
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder="Search Student Name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+              className="border px-3 py-2 rounded w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 font-medium text-sm text-center sm:text-right w-full sm:w-auto">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto max-h-[70vh] rounded-lg">
           <table className="min-w-full table-auto">
-            <thead className="bgTheme text-white sticky top-0 z--1 text-sm">
+            <thead className="bgTheme text-white sticky top-0 z-10 text-sm">
               <tr>
-                <th scope="col" className="px-4 py-3 text-nowrap text-center">S.NO</th>
-                <th scope="col" className="px-4 py-3 text-nowrap text-center">Year Level</th>
-                <th scope="col" className="px-4 py-3 text-nowrap text-center">Number Of Students</th>
+                <th scope="col" className="px-4 py-3 text-center text-nowrap">S.NO</th>
+                <th scope="col" className="px-4 py-3 text-center text-nowrap">Student Name</th>
+                <th scope="col" className="px-4 py-3 text-center text-nowrap">Section</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-              {yearLevels.length === 0 ? (
+              {filteredStudents.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="2"
-                    className="text-center py-6  text-gray-500 dark:text-gray-400"
-                  >
-                    No data found.
+                  <td colSpan="3" className="px-4 py-6 text-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                    {yearLevelName ? (
+                      `No students found in ${levelName} for ${yearLevelName} session.`
+                    ) : (
+                      'No students found.'
+                    )}
                   </td>
                 </tr>
               ) : (
-                yearLevels.map((record, index) => (
+                filteredStudents.map((record, index) => (
                   <tr
                     key={record.id || index}
-                    className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="hover:bg-gray-50 text-nowrap dark:hover:bg-gray-700 transition-colors text-center"
                   >
-                    <td className="px-4 py-3 text-center text-nowrap text-gray-700 dark:text-gray-300">
+                    <td className="px-4 py-3 text-nowrap text-gray-700 dark:text-gray-300">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 font-bold text-nowrap text-center capitalize">
+                    <td className="px-4 py-3 font-bold capitalize text-gray-700 dark:text-gray-300 text-nowrap">
                       <Link
-                        to={`/allStudentsPerClass/${record.id}`}
-                        state={{ level_name: record.level_name }}
+                        to={`/Studentdetails/${record.student_id}`}
                         className="textTheme hover:underline"
                       >
-                        {record.level_name}
+                        {record.student_name || "Unnamed"}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-center text-nowrap">{record.student_count}</td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        {record.section || "-"}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}
@@ -118,7 +177,6 @@ const Allclasses = () => {
       </div>
     </div>
   );
-
 };
 
-export default Allclasses;
+export default AllStudentsPerClass;
