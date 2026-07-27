@@ -10,14 +10,17 @@ const AllStudentsPerClass = () => {
 
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSection, setSelectedSection] = useState("all");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const levelName = location.state?.level_name || "Unknown";
+  const yearLevelName = location.state?.year_level_name || location.state?.year_name || null;
 
   const getStudents = async () => {
     try {
-      const data = await fetchStudentYearLevelByClass(id);
+      // ✅ Pass yearLevelName to API function
+      const data = await fetchStudentYearLevelByClass(id, yearLevelName);
       const sortedData = [...data].sort((a, b) =>
         (a.student_name || "").localeCompare(b.student_name || "", "en", { sensitivity: "base" })
       );
@@ -31,19 +34,26 @@ const AllStudentsPerClass = () => {
     }
   };
 
-
   useEffect(() => {
     getStudents();
-  }, [id]);
+  }, [id, yearLevelName]);
 
-  const filteredStudents = students.filter((student) =>
-    student.student_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Get unique sections for filter dropdown - Sorted alphabetically
+  const sections = ["all", ...new Set(students.map(student => student.section).filter(Boolean))];
+  // Sort the sections alphabetically (excluding "all")
+  const sortedSections = ["all", ...sections.filter(s => s !== "all").sort((a, b) => 
+    a.localeCompare(b, undefined, { sensitivity: 'base' })
+  )];
 
-  );
+  // Filter students by search term and section
+  const filteredStudents = students.filter((student) => {
+    const matchesSearch = student.student_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSection = selectedSection === "all" || student.section === selectedSection;
+    return matchesSearch && matchesSection;
+  });
 
   if (loading) {
     return (
-
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="flex space-x-2">
           <div className="w-3 h-3 bgTheme rounded-full animate-bounce"></div>
@@ -54,7 +64,6 @@ const AllStudentsPerClass = () => {
       </div>
     );
   }
-
 
   if (error) {
     return (
@@ -75,18 +84,41 @@ const AllStudentsPerClass = () => {
             <i className="fa-solid fa-graduation-cap mr-2" />
             Students in {levelName}
           </h1>
+          {yearLevelName && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Academic Year: {yearLevelName}
+            </p>
+          )}
         </div>
 
-        {/* Search & Error */}
+        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
-          <input
-            type="text"
-            placeholder="Search Student Name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
-            className="border px-3 py-2 rounded w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {/* Section Filter Dropdown - Sorted alphabetically */}
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="border px-3 py-2 rounded w-full sm:w-40 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Sections</option>
+              {sortedSections.map((section) =>
+                section !== "all" && (
+                  <option key={section} value={section}>
+                    {section}
+                  </option>
+                )
+              )}
+            </select>
 
-          />
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder="Search Student Name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+              className="border px-3 py-2 rounded w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           {error && (
             <div className="text-red-600 font-medium text-sm text-center sm:text-right w-full sm:w-auto">
@@ -102,12 +134,13 @@ const AllStudentsPerClass = () => {
               <tr>
                 <th scope="col" className="px-4 py-3 text-center text-nowrap">S.NO</th>
                 <th scope="col" className="px-4 py-3 text-center text-nowrap">Student Name</th>
+                <th scope="col" className="px-4 py-3 text-center text-nowrap">Section</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan="2" className="px-4 py-6 text-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                  <td colSpan="3" className="px-4 py-6 text-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
                     No students found.
                   </td>
                 </tr>
@@ -120,13 +153,18 @@ const AllStudentsPerClass = () => {
                     <td className="px-4 py-3 text-nowrap text-gray-700 dark:text-gray-300">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3  font-bold capitalize text-gray-700 dark:text-gray-300 text-nowrap">
+                    <td className="px-4 py-3 font-bold capitalize text-gray-700 dark:text-gray-300 text-nowrap">
                       <Link
                         to={`/Studentdetails/${record.student_id}`}
                         className="textTheme hover:underline"
                       >
                         {record.student_name || "Unnamed"}
                       </Link>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        {record.section || "-"}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -137,9 +175,6 @@ const AllStudentsPerClass = () => {
       </div>
     </div>
   );
-
 };
 
 export default AllStudentsPerClass;
-
-

@@ -112,33 +112,33 @@ export const SingleAdmissionDetails = () => {
               </div>
               <div>
                 <p className="font-medium">Date of Birth:</p>
-                <p>{getValue(details.student_input, "date_of_birth")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "date_of_birth") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Gender:</p>
-                <p>{getValue(details.student_input, "gender")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "gender") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Email:</p>
-                <p>{getValue(details.student_input, "email")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "email") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Blood Group:</p>
-                <p>{getValue(details.student_input, "blood_group")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "blood_group") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Religion:</p>
-                <p>{getValue(details.student_input, "religion")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "religion") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Category:</p>
-                <p>{getValue(details.student_input, "category")|| "N/A"}</p>
+                <p>{getValue(details.student_input, "category") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Height/Weight:</p>
                 <p>
-                  {getValue(details.student_input, "height")|| "N/A"} cm /{" "}
-                  {getValue(details.student_input, "weight")|| "N/A"} kg
+                  {getValue(details.student_input, "height") || "N/A"} cm /{" "}
+                  {getValue(details.student_input, "weight") || "N/A"} kg
                 </p>
               </div>
               <div>
@@ -273,6 +273,10 @@ export const SingleAdmissionDetails = () => {
                 <p>{details.year_level || "N/A"}</p>
               </div>
               <div>
+                <p className="font-medium">Section:</p>
+                <p>{details.section || "N/A"}</p>
+              </div>
+              <div>
                 <p className="font-medium">School Year:</p>
                 <p>{details.school_year || "N/A"}</p>
               </div>
@@ -323,15 +327,15 @@ export const SingleAdmissionDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="font-medium">Account Holder:</p>
-                <p>{getValue(details.banking_detail, "holder_name")|| "N/A"}</p>
+                <p>{getValue(details.banking_detail, "holder_name") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">Account Number:</p>
-                <p>{getValue(details.banking_detail, "account_no")|| "N/A"}</p>
+                <p>{getValue(details.banking_detail, "account_no") || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium">IFSC Code:</p>
-                <p>{getValue(details.banking_detail, "ifsc_code")|| "N/A"}</p>
+                <p>{getValue(details.banking_detail, "ifsc_code") || "N/A"}</p>
               </div>
             </div>
           </div>

@@ -84,6 +84,7 @@ export const allRouterLink = {
     studentAdmissionFees:"/studentAdmissionFees/:id",
     privacyPolicy:"/privacyPolicy",
     createMarksheet:"/createMarksheet",
+    feeStructure: "/fee-structure",
 
     // all routes before this
     unAuthorized: '/unauthorized',
