@@ -1,54 +1,58 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import { fetchStudentYearLevelByClass } from "../../services/api/Api";
+import { fetchYearLevels, fetchStudentYearLevelByClass } from "../../services/api/Api";
 import { Link } from "react-router-dom";
 
-const AllStudentsPerClass = () => {
-  const { id } = useParams();
-  const location = useLocation();
+const SESSION_OPTIONS = ["All", "2025-2026", "2026-2027"];
 
-  const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSection, setSelectedSection] = useState("all");
-
+const Allclasses = () => {
+  const [yearLevels, setYearLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const levelName = location.state?.level_name || "Unknown";
-  const yearLevelName = location.state?.year_level_name || location.state?.session || null;
+  const [selectedSession, setSelectedSession] = useState("All");
 
-  const getStudents = async () => {
+  const getYearLevels = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      // ✅ Pass yearLevelName to API function
-      const data = await fetchStudentYearLevelByClass(id, yearLevelName);
-      const sortedData = [...data].sort((a, b) =>
-        (a.student_name || "").localeCompare(b.student_name || "", "en", { sensitivity: "base" })
+      const data = await fetchYearLevels();
+
+      const withCounts = await Promise.all(
+        data.map(async (level) => {
+          try {
+            // Fetch students with session filter from API (no gender filter for counts)
+            const filteredStudents = await fetchStudentYearLevelByClass(
+              level.id,
+              selectedSession !== "All" ? selectedSession : null,
+              null // No gender filter for counts
+            );
+
+            return {
+              ...level,
+              student_count: filteredStudents.length,
+            };
+          } catch (err) {
+            console.error(`Error fetching students for level ${level.id}:`, err);
+            return {
+              ...level,
+              student_count: 0,
+            };
+          }
+        })
       );
 
-      setStudents(sortedData);
+      setYearLevels(withCounts);
     } catch (err) {
-      console.error("Error fetching students:", err);
-      setError("Failed to fetch students.");
+      console.error("Error fetching year levels:", err);
+      setError("Failed to fetch year levels. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getStudents();
-  }, [id, yearLevelName]);
-
-  // Get unique sections for filter dropdown - Sorted alphabetically
-  const sections = ["all", ...new Set(students.map(student => student.section).filter(Boolean))];
-  const sortedSections = ["all", ...sections.filter(s => s !== "all").sort((a, b) => 
-    a.localeCompare(b, undefined, { sensitivity: 'base' })
-  )];
-
-  // Filter students by search term and section
-  const filteredStudents = students.filter((student) => {
-    const matchesSearch = student.student_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSection = selectedSection === "all" || student.section === selectedSection;
-    return matchesSearch && matchesSection;
-  });
+    getYearLevels();
+  }, [selectedSession]);
 
   if (loading) {
     return (
@@ -74,100 +78,82 @@ const AllStudentsPerClass = () => {
 
   return (
     <div className="min-h-screen p-5 bg-gray-50 dark:bg-gray-900 mb-24 md:mb-10">
-      <div className="bg-white dark:bg-gray-800 max-w-7xl p-6 rounded-lg shadow-lg mx-auto">
-
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+      <div className="bg-white dark:bg-gray-800 p-6 max-w-7xl mx-auto rounded-lg shadow-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
             <i className="fa-solid fa-graduation-cap mr-2" />
-            Students in {levelName}
+            All Year Levels
           </h1>
-          {yearLevelName && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Academic Year: {yearLevelName}
-            </p>
-          )}
-        </div>
 
-        {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            {/* Section Filter Dropdown - Sorted alphabetically */}
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+            <label htmlFor="sessionFilter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Session:
+            </label>
             <select
-              value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
-              className="border px-3 py-2 rounded w-full sm:w-40 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="sessionFilter"
+              value={selectedSession}
+              onChange={(e) => setSelectedSession(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All Sections</option>
-              {sortedSections.map((section) =>
-                section !== "all" && (
-                  <option key={section} value={section}>
-                    {section}
-                  </option>
-                )
-              )}
+              {SESSION_OPTIONS.map((session) => (
+                <option key={session} value={session}>
+                  {session}
+                </option>
+              ))}
             </select>
-
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder="Search Student Name"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value.trimStart())}
-              className="border px-3 py-2 rounded w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
           </div>
-
-          {error && (
-            <div className="text-red-600 font-medium text-sm text-center sm:text-right w-full sm:w-auto">
-              {error}
-            </div>
-          )}
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto max-h-[70vh] rounded-lg">
+        <div className="overflow-x-auto no-scrollbar rounded-lg max-h-[70vh]">
           <table className="min-w-full table-auto">
             <thead className="bgTheme text-white sticky top-0 z-10 text-sm">
               <tr>
-                <th scope="col" className="px-4 py-3 text-center text-nowrap">S.NO</th>
-                <th scope="col" className="px-4 py-3 text-center text-nowrap">Student Name</th>
-                <th scope="col" className="px-4 py-3 text-center text-nowrap">Section</th>
+                <th scope="col" className="px-4 py-3 text-nowrap text-center">S.NO</th>
+                <th scope="col" className="px-4 py-3 text-nowrap text-center">Year Level</th>
+                <th scope="col" className="px-4 py-3 text-nowrap text-center">Number Of Students</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-              {filteredStudents.length === 0 ? (
+              {yearLevels.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="px-4 py-6 text-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    {yearLevelName ? (
-                      `No students found in ${levelName} for ${yearLevelName} session.`
-                    ) : (
-                      'No students found.'
-                    )}
+                  <td colSpan="3" className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    No data found.
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((record, index) => (
+                yearLevels.map((record, index) => (
                   <tr
                     key={record.id || index}
-                    className="hover:bg-gray-50 text-nowrap dark:hover:bg-gray-700 transition-colors text-center"
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <td className="px-4 py-3 text-nowrap text-gray-700 dark:text-gray-300">
+                    <td className="px-4 py-3 text-center text-nowrap text-gray-700 dark:text-gray-300">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 font-bold capitalize text-gray-700 dark:text-gray-300 text-nowrap">
-                      <Link
-                        to={`/Studentdetails/${record.student_id}`}
+                    <td className="px-4 py-3 font-bold text-nowrap text-center capitalize">
+                      {/* <Link
+                        to={`/allStudentsPerClass/${record.id}`}
+                        state={{ 
+                          level_name: record.level_name,
+                          year_level_name: selectedSession !== "All" ? selectedSession : ""
+                        }}
                         className="textTheme hover:underline"
                       >
-                        {record.student_name || "Unnamed"}
+                        {record.level_name}
+                      </Link> */}
+                      <Link
+                        to={`/allStudentsPerClass/${record.id}`}
+                        state={{
+                          level_name: record.level_name,
+                          year_level_name: selectedSession !== "All" ? selectedSession : "",
+                          level_id: record.id,
+                          year_id: record.year_id // Make sure this is available in your data
+                        }}
+                        className="textTheme hover:underline"
+                      >
+                        {record.level_name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
-                        {record.section || "-"}
-                      </span>
-                    </td>
+                    <td className="px-4 py-3 text-center text-nowrap">{record.student_count}</td>
                   </tr>
                 ))
               )}
@@ -179,4 +165,4 @@ const AllStudentsPerClass = () => {
   );
 };
 
-export default AllStudentsPerClass;
+export default Allclasses;
