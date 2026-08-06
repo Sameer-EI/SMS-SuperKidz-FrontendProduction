@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { fetchSchoolYear, fetchYearLevels } from "../../services/api/Api";
 
@@ -44,6 +44,7 @@ const FeeStructure = () => {
     const [editingId, setEditingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const [selectAll, setSelectAll] = useState(false);
+    const formSectionRef = useRef(null);
 
     // Modal states
     const [showModal, setShowModal] = useState(false);
@@ -216,6 +217,17 @@ const FeeStructure = () => {
         }
     };
 
+    const scrollToFormSection = () => {
+        if (typeof window === "undefined") return;
+
+        requestAnimationFrame(() => {
+            if (formSectionRef.current) {
+                const topPosition = formSectionRef.current.getBoundingClientRect().top + window.pageYOffset - 24;
+                window.scrollTo({ top: topPosition, behavior: "smooth" });
+            }
+        });
+    };
+
     const handleEdit = (structure) => {
         setEditingId(structure.id);
         setFormData({
@@ -227,6 +239,7 @@ const FeeStructure = () => {
         });
         setSuccessMessage("");
         setErrorMessage("");
+        scrollToFormSection();
     };
 
     const handleDelete = (structure) => {
@@ -482,7 +495,7 @@ const FeeStructure = () => {
                     </div>
 
                     <div className="grid gap-6 lg:grid-cols-[0.95fr,1.05fr]">
-                        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <section ref={formSectionRef} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="text-xl font-semibold text-slate-900">
