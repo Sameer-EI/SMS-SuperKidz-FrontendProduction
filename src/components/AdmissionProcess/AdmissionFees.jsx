@@ -57,7 +57,6 @@ export const AdmissionFees = () => {
       online_amount: "0",
       cheque_amount: "0",
       penalty: "0",
-      remarks: "",
       received_by: "",
     },
   });
@@ -188,7 +187,6 @@ export const AdmissionFees = () => {
       online_amount: "0",
       cheque_amount: "0",
       penalty: "0",
-      remarks: "",
       received_by: "",
     });
     setSelectedFeeIds([]);
@@ -1202,40 +1200,6 @@ export const AdmissionFees = () => {
                         ₹{totalPaid.toFixed(2)}
                       </span>
                     </div>
-                  </div>
-
-                  <div className="form-control mt-4">
-                    <label className="label">
-                      <span className="label-text flex items-center gap-2">
-                        <i className="fa-solid fa-comment text-sm"></i>
-                        Remarks <span className="text-error">*</span>
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={25}
-                      className={`input w-full focus:outline-none ${errors.remarks ? "input-error" : "input-bordered"
-                        }`}
-                      {...register("remarks", {
-                        required: "Remarks are required",
-                        minLength: {
-                          value: 3,
-                          message: "Remarks must be at least 3 characters long",
-                        },
-                        maxLength: {
-                          value: 25,
-                          message: "Remarks cannot exceed 25 characters",
-                        },
-                      })}
-                      placeholder="Enter any remarks"
-                    />
-                    {errors.remarks && (
-                      <label className="label">
-                        <span className="label-text-alt text-sm text-error">
-                          {errors.remarks.message}
-                        </span>
-                      </label>
-                    )}
                   </div>
                 </div>
               )}
