@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import image from "../../assets/auth-hero.png";
@@ -17,58 +17,13 @@ export const Login = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const detectDark = () => {
-      const prefersDark =
-        typeof window !== "undefined" &&
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const hasDarkClass =
-        typeof document !== "undefined" &&
-        document.documentElement.classList.contains("dark");
-      setIsDark(prefersDark || hasDarkClass);
-    };
-
-    detectDark();
-
-    let mql;
-    const handler = (e) => {
-      setIsDark((e && e.matches) || document.documentElement.classList.contains("dark"));
-    };
-
-    if (typeof window !== "undefined" && window.matchMedia) {
-      mql = window.matchMedia("(prefers-color-scheme: dark)");
-      if (mql.addEventListener) {
-        mql.addEventListener("change", handler);
-      } else if (mql.addListener) {
-        mql.addListener(handler);
-      }
-    }
-
-    const observer =
-      typeof document !== "undefined" ? new MutationObserver(() => detectDark()) : null;
-
-    if (observer) {
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    }
-
-    return () => {
-      if (mql) {
-        if (mql.removeEventListener) mql.removeEventListener("change", handler);
-        else if (mql.removeListener) mql.removeListener(handler);
-      }
-      if (observer) observer.disconnect();
-    };
-  }, []);
-
   const onSubmit = async (data) => {
     setLoading(true);
     setFormError("");
 
     try {
       const response = await LoginUser({ email: data.email, password: data.password });
+      console.log("Login response:", response);
 
       if (response && response["Message"] === "User logged in successfully") {
         const role = response.Roles?.[0] || "";
@@ -78,6 +33,8 @@ export const Login = () => {
         const guardianId = response.guardianId || response.guardian_id || "";
         const teacherId = response.teacherId || response.teacher_id || "";
         const officeStaffId = response.officeStaffId || response.office_staff_id || "";
+
+        console.log("Role:", role, "TeacherId:", teacherId, "StudentId:", studentId);
 
         localStorage.setItem("access", response.access);
         localStorage.setItem("userRole", role);
@@ -116,13 +73,14 @@ export const Login = () => {
     } catch (err) {
       setFormError(
         err.response?.data?.Message ||
-          err.response?.data?.message ||
-          "Something went wrong. Please try again later."
+        err.response?.data?.message ||
+        "Something went wrong. Please try again later."
       );
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <>
@@ -131,67 +89,42 @@ export const Login = () => {
         <div className="hidden md:block md:w-2/3 formBgColor">
           <img src={image} alt="Authentication" className="w-full h-full object-cover" />
         </div>
-        <div className="w-full md:w-1/2 lg:w-1/3 min-h-screen flex flex-col p-4">
-          <form
-            className="w-full max-w-md mx-auto my-auto space-y-4"
+        <div className="w-full md:w-1/2 lg:w-1/3 flex flex-col p-4">
+          <form 
+            className="w-full max-w-md mx-auto my-auto space-y-4" 
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="text-center mb-8 pb-4 border-b border-gray-200">
-              <div className="flex justify-center items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                  <i className="fa-solid fa-school text-white text-xl"></i>
-                </div>
-
-                <div className="text-left">
-                  <h2 className="text-lg font-bold">New Progressive</h2>
-                  <h2 className="text-lg font-bold">Education Public School</h2>
-                </div>
-              </div>
-            </div>
-
             <h1 className="text-3xl font-bold text-center mb-6">Login</h1>
 
             <div className="form-control w-full">
               <label className="label">
                 <span className="label-text flex items-center gap-2">
-                  <i className="fa-solid fa-envelope text-sm"></i>
-                  Email
+                  <i className="fa-solid fa-envelope text-sm"></i> Email
                 </span>
               </label>
-
               <input
                 type="email"
                 placeholder="example@gmail.com"
                 className="input input-bordered w-full focus:outline-none"
                 autoComplete="on"
-                {...register("email", {
-                  validate: (val) => validloginemail(val) || true,
-                })}
+                {...register("email", { validate: (val) => validloginemail(val) || true })}
               />
-
-              {errors.email && (
-                <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>
-              )}
+              {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>}
             </div>
 
             <div className="form-control w-full relative">
               <label className="label">
                 <span className="label-text flex items-center gap-2">
-                  <i className="fa-solid fa-lock text-sm"></i>
-                  Password
+                  <i className="fa-solid fa-lock text-sm"></i> Password
                 </span>
               </label>
-
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 className="input w-full pr-10 focus:outline-none"
                 autoComplete="on"
-                {...register("password", {
-                  validate: (val) => validloginpassword(val) || true,
-                })}
+                {...register("password", { validate: (val) => validloginpassword(val) || true })}
               />
-
               <button
                 type="button"
                 className="passwordEyes text-gray-500"
@@ -199,36 +132,16 @@ export const Login = () => {
               >
                 <i className={`fa-solid ${showPassword ? "fa-eye" : "fa-eye-slash"}`}></i>
               </button>
-
-              {errors.password && (
-                <span className="text-red-500 text-sm mt-1">{errors.password.message}</span>
-              )}
+              {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password.message}</span>}
             </div>
 
-            {formError && (
-              <div className="text-red-500 text-center font-medium">{formError}</div>
-            )}
+            {formError && <div className="text-red-500 text-center font-medium">{formError}</div>}
 
             <div className="form-control w-full mt-6">
               <button type="submit" className="btn bgTheme btn-primary w-full">
-                {loading ? (
-                  <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-                ) : (
-                  <i className="fa-solid fa-right-to-bracket mr-2"></i>
-                )}
-
+                {loading ? <i className="fa-solid fa-spinner fa-spin mr-2"></i> : <i className="fa-solid fa-right-to-bracket mr-2"></i>}
                 {loading ? "" : "Login"}
               </button>
-            </div>
-
-            <div className="text-center mt-8 text-xs text-gray-400">
-              By continuing, you agree to our{" "}
-              <Link
-                to={allRouterLink.privacyPolicy}
-                className="underline hover:text-gray-600"
-              >
-                Privacy Policy
-              </Link>
             </div>
 
             <div className="text-center mt-4">
@@ -236,15 +149,13 @@ export const Login = () => {
                 to={allRouterLink.forgotPassword}
                 className="text-sm textTheme hover:underline hover:text-[#4a17b1] font-medium"
               >
-                <i className="fa-solid fa-key mr-2"></i>
-                Forgot Password
+                <i className="fa-solid fa-key mr-2"></i> Forgot Password
               </Link>
             </div>
           </form>
 
           <div className="mt-auto pb-2 flex flex-col items-center gap-0">
             <span className="text-sm text-gray-400 font-medium">Powered by</span>
-
             <img
               src={logo2}
               alt="Powered by logo"
